@@ -776,7 +776,11 @@ export class SolanaCreateSingleSidedWhirlpoolTool extends Tool {
       const feeTier = inputFormat.feeTier;
 
       if (!feeTier || !(feeTier in FEE_TIERS)) {
-        throw new Error(`Invalid feeTier. Available options: ${Object.keys(FEE_TIERS).join(", ")}`);
+        throw new Error(
+          `Invalid feeTier. Available options: ${Object.keys(FEE_TIERS).join(
+            ", "
+          )}`
+        );
       }
 
       const txId = await this.solanaKit.createOrcaSingleSidedWhirlpool(
@@ -785,7 +789,7 @@ export class SolanaCreateSingleSidedWhirlpoolTool extends Tool {
         otherTokenMint,
         initialPrice,
         maxPrice,
-        feeTier,
+        feeTier
       );
 
       return JSON.stringify({
@@ -802,7 +806,6 @@ export class SolanaCreateSingleSidedWhirlpoolTool extends Tool {
     }
   }
 }
-
 
 export class SolanaRaydiumCreateAmmV4 extends Tool {
   name = "raydium_create_ammV4";
@@ -821,13 +824,13 @@ export class SolanaRaydiumCreateAmmV4 extends Tool {
 
   async _call(input: string): Promise<string> {
     try {
-      let inputFormat = JSON.parse(input)
+      let inputFormat = JSON.parse(input);
 
       const tx = await this.solanaKit.raydiumCreateAmmV4(
         new PublicKey(inputFormat.marketId),
         new BN(inputFormat.baseAmount),
         new BN(inputFormat.quoteAmount),
-        new BN(inputFormat.startTime),
+        new BN(inputFormat.startTime)
       );
 
       return JSON.stringify({
@@ -863,7 +866,7 @@ export class SolanaRaydiumCreateClmm extends Tool {
 
   async _call(input: string): Promise<string> {
     try {
-      let inputFormat = JSON.parse(input)
+      let inputFormat = JSON.parse(input);
 
       const tx = await this.solanaKit.raydiumCreateClmm(
         new PublicKey(inputFormat.mint1),
@@ -872,7 +875,7 @@ export class SolanaRaydiumCreateClmm extends Tool {
         new PublicKey(inputFormat.configId),
 
         new Decimal(inputFormat.initialPrice),
-        new BN(inputFormat.startTime),
+        new BN(inputFormat.startTime)
       );
 
       return JSON.stringify({
@@ -909,7 +912,7 @@ export class SolanaRaydiumCreateCpmm extends Tool {
 
   async _call(input: string): Promise<string> {
     try {
-      let inputFormat = JSON.parse(input)
+      let inputFormat = JSON.parse(input);
 
       const tx = await this.solanaKit.raydiumCreateCpmm(
         new PublicKey(inputFormat.mint1),
@@ -920,7 +923,7 @@ export class SolanaRaydiumCreateCpmm extends Tool {
         new BN(inputFormat.mintAAmount),
         new BN(inputFormat.mintBAmount),
 
-        new BN(inputFormat.startTime),
+        new BN(inputFormat.startTime)
       );
 
       return JSON.stringify({
@@ -955,14 +958,14 @@ export class SolanaOpenbookCreateMarket extends Tool {
 
   async _call(input: string): Promise<string> {
     try {
-      let inputFormat = JSON.parse(input)
+      let inputFormat = JSON.parse(input);
 
       const tx = await this.solanaKit.openbookCreateMarket(
         new PublicKey(inputFormat.baseMint),
         new PublicKey(inputFormat.quoteMint),
 
         inputFormat.lotSize,
-        inputFormat.tickSize,
+        inputFormat.tickSize
       );
 
       return JSON.stringify({
@@ -1012,6 +1015,51 @@ export class SolanaPythFetchPrice extends Tool {
   }
 }
 
+export class SolanaVoltrDepositStrategy extends Tool {
+  name = "solana_voltr_deposit_strategy";
+  description = `Deposit strategy for Voltr's vaults
+  
+  Inputs (input is a json string):
+  vault: string (required)
+  depositAmount: number (required)
+  vaultAssetMint: string (required)
+  liquidityReserve: string (required)
+  protocolProgram: string (required)
+  remainingAccounts: array of objects (required)
+  `;
+
+  constructor(private solanaKit: SolanaAgentKit) {
+    super();
+  }
+
+  async _call(input: string): Promise<string> {
+    try {
+      let inputFormat = JSON.parse(input);
+
+      const tx = await this.solanaKit.voltrDepositStrategy(
+        new BN(inputFormat.depositAmount),
+        new PublicKey(inputFormat.vault),
+        new PublicKey(inputFormat.vaultAssetMint),
+        new PublicKey(inputFormat.liquidityReserve),
+        new PublicKey(inputFormat.protocolProgram),
+        inputFormat.remainingAccounts
+      );
+
+      return JSON.stringify({
+        status: "success",
+        message: "Deposited into Voltrstrategy successfully",
+        transaction: tx,
+      });
+    } catch (error: any) {
+      return JSON.stringify({
+        status: "error",
+        message: error.message,
+        code: error.code || "UNKNOWN_ERROR",
+      });
+    }
+  }
+}
+
 export function createSolanaTools(solanaKit: SolanaAgentKit) {
   return [
     new SolanaBalanceTool(solanaKit),
@@ -1040,6 +1088,6 @@ export function createSolanaTools(solanaKit: SolanaAgentKit) {
     new SolanaOpenbookCreateMarket(solanaKit),
     new SolanaCreateSingleSidedWhirlpoolTool(solanaKit),
     new SolanaPythFetchPrice(solanaKit),
+    new SolanaVoltrDepositStrategy(solanaKit),
   ];
 }
-

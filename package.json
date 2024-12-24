@@ -45,7 +45,8 @@
     "form-data": "^4.0.1",
     "langchain": "^0.3.6",
     "openai": "^4.75.0",
-    "typedoc": "^0.26.11"
+    "typedoc": "^0.26.11",
+    "voltr-sdk": "^0.1.2"
   },
   "devDependencies": {
     "@types/bn.js": "^5.1.5",

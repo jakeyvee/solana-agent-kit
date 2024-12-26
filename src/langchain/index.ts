@@ -1060,6 +1060,53 @@ export class SolanaVoltrDepositStrategy extends Tool {
   }
 }
 
+export class SolanaVoltrWithdrawStrategy extends Tool {
+  name = "solana_voltr_withdraw_strategy";
+  description = `Withdraw strategy for Voltr's vaults
+  
+  Inputs (input is a json string):
+  vault: string (required)
+  withdrawAmount: number (required)
+  vaultAssetMint: string (required)
+  liquidityReserve: string (required)
+  liquidityReserveAuth: string (required)
+  protocolProgram: string (required)
+  remainingAccounts: array of objects (required)
+  `;
+
+  constructor(private solanaKit: SolanaAgentKit) {
+    super();
+  }
+
+  async _call(input: string): Promise<string> {
+    try {
+      let inputFormat = JSON.parse(input);
+
+      const tx = await this.solanaKit.voltrWithdrawStrategy(
+        new BN(inputFormat.withdrawAmount),
+        new PublicKey(inputFormat.vault),
+        new PublicKey(inputFormat.vaultAssetMint),
+        new PublicKey(inputFormat.liquidityReserve),
+        new PublicKey(inputFormat.liquidityReserveAuth),
+        new PublicKey(inputFormat.protocolProgram),
+        inputFormat.remainingAccounts
+      );
+
+      return JSON.stringify({
+        status: "success",
+        message: "Withdrew from Voltr strategy successfully",
+        transaction: tx,
+      });
+    } catch (error: any) {
+      return JSON.stringify({
+        status: "error",
+        message: error.message,
+        code: error.code || "UNKNOWN_ERROR",
+      });
+    }
+  }
+}
+
 export function createSolanaTools(solanaKit: SolanaAgentKit) {
   return [
     new SolanaBalanceTool(solanaKit),
@@ -1089,5 +1136,6 @@ export function createSolanaTools(solanaKit: SolanaAgentKit) {
     new SolanaCreateSingleSidedWhirlpoolTool(solanaKit),
     new SolanaPythFetchPrice(solanaKit),
     new SolanaVoltrDepositStrategy(solanaKit),
+    new SolanaVoltrWithdrawStrategy(solanaKit),
   ];
 }

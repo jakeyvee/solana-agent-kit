@@ -38,6 +38,7 @@ import {
   PumpFunTokenOptions,
 } from "../types";
 import { BN } from "@coral-xyz/anchor";
+import { voltrWithdrawStrategy } from "../tools/voltr_withdraw_strategy";
 
 /**
  * Main class for interacting with Solana blockchain
@@ -297,6 +298,31 @@ export class SolanaAgentKit {
       vault,
       vaultAssetMint,
       liquidityReserve,
+      protocolProgram,
+      remainingAccounts
+    );
+  }
+
+  async voltrWithdrawStrategy(
+    withdrawAmount: BN,
+    vault: PublicKey,
+    vaultAssetMint: PublicKey,
+    liquidityReserve: PublicKey,
+    liquidityReserveAuth: PublicKey,
+    protocolProgram: PublicKey,
+    remainingAccounts: {
+      pubkey: PublicKey;
+      isSigner: boolean;
+      isWritable: boolean;
+    }[]
+  ): Promise<string> {
+    return voltrWithdrawStrategy(
+      this,
+      withdrawAmount,
+      vault,
+      vaultAssetMint,
+      liquidityReserve,
+      liquidityReserveAuth,
       protocolProgram,
       remainingAccounts
     );

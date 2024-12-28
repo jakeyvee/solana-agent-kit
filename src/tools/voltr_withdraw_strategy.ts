@@ -7,6 +7,18 @@ import {
 } from "@solana/web3.js";
 import BN from "bn.js";
 
+/**
+ * Withdraws assets from a Voltr strategy
+ * @param agent SolanaAgentKit instance
+ * @param withdrawAmount Amount to withdraw in base units (BN)
+ * @param vault Public key of the target vault
+ * @param vaultAssetMint Public key of the vault's asset mint
+ * @param liquidityReserve Public key of the protocol's liquidity reserve
+ * @param liquidityReserveAuth Public key of the liquidity reserve authority
+ * @param protocolProgram Public key of the protocol program
+ * @param remainingAccounts Array of additional accounts required for the protocol
+ * @returns Transaction signature for the withdrawal
+ */
 export async function voltrWithdrawStrategy(
   agent: SolanaAgentKit,
   withdrawAmount: BN,

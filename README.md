@@ -2,9 +2,16 @@
 
 # Solana Agent Kit
 
-</div>
+
 
 ![Solana Agent Kit Cover 1 (3)](https://github.com/user-attachments/assets/cfa380f6-79d9-474d-9852-3e1976c6de70)
+
+
+![NPM Downloads](https://img.shields.io/npm/dm/solana-agent-kit?style=for-the-badge)
+![GitHub forks](https://img.shields.io/github/forks/sendaifun/solana-agent-kit?style=for-the-badge)
+![GitHub License](https://img.shields.io/github/license/sendaifun/solana-agent-kit?style=for-the-badge)
+
+</div>
 
 An open-source toolkit for connecting AI agents to Solana protocols. Now, any agent, using any model can autonomously perform 15+ Solana actions:
 
@@ -37,17 +44,21 @@ Anyone - whether an SF-based AI researcher or a crypto-native builder - can brin
   - Jupiter Exchange swaps
   - Launch on Pump via PumpPortal
   - Raydium pool creation (CPMM, CLMM, AMMv4)
-  - Orca whirlpool integration
+  - Orca Whirlpool integration
   - Meteora Dynamic AMM, DLMM Pool, and Alpga Vault
   - Openbook market creation
   - Register and Resolve SNS
   - Jito Bundles
+  - Pyth Price feeds for fetching Asset Prices
+  - Register/resolve Alldomains
 
 - **Solana Blinks**
-   - Lending by Lulo
+   - Lending by Lulon (Best APR for USDC)
    - Send Arcade Games
    - JupSOL staking
 
+- **Non-Financial Actions**
+  - Gib Work for registering bounties
 
 ## 🤖 AI Integration Features
 
@@ -183,59 +194,30 @@ import { PublicKey } from "@solana/web3.js";
 ### Fetch Price Data from Pyth
 
 ```typescript
-import { pythFetchPrice } from "solana-agent-kit";
 
-const price = await pythFetchPrice(
-  agent,
+const price = await agent.pythFetchPrice(
   "0xe62df6c8b4a85fe1a67db44dc12de5db330f7ac66b72dc658afedf0f4a415b43"
 );
 
 console.log("Price in BTC/USD:", price);
 ```
 
-## API Reference
+## Examples
 
-### Core Functions
+### LangGraph Multi-Agent System
 
-#### `deploy_token(agent, decimals?, name, uri, symbol, initialSupply?)`
+The repository includes an advanced example of building a multi-agent system using LangGraph and Solana Agent Kit. Located in `examples/agent-kit-langgraph`, this example demonstrates:
 
-Deploy a new SPL token with optional initial supply. If not specified, decimals default to 9.
+- Multi-agent architecture using LangGraph's StateGraph
+- Specialized agents for different tasks:
+  - General purpose agent for basic queries
+  - Transfer/Swap agent for transaction operations
+  - Read agent for blockchain data queries
+  - Manager agent for routing and orchestration
+- Fully typed TypeScript implementation
+- Environment-based configuration
 
-#### `deploy_collection(agent, options)`
-
-Create a new NFT collection with customizable metadata and royalties.
-
-#### `mintCollectionNFT(agent, collectionMint, metadata, recipient?)`
-
-Mint a new NFT as part of an existing collection.
-
-#### `transfer(agent, to, amount, mint?)`
-
-Transfer SOL or SPL tokens to a recipient.
-
-#### `trade(agent, outputMint, inputAmount, inputMint?, slippageBps?)`
-
-Swap tokens using Jupiter Exchange integration.
-
-#### `get_balance(agent, token_address)`
-
-Check SOL or token balance for the agent's wallet.
-
-#### `lendAsset(agent, assetMint, amount, apiKey)`
-
-Lend idle assets to earn interest with Lulo.
-
-#### `stakeWithJup(agent, amount)`
-
-Stake SOL with Jupiter to earn rewards.
-
-#### `sendCompressedAirdrop(agent, mintAddress, amount, recipients, priorityFeeInLamports?, shouldLog?)`
-
-Send an SPL token airdrop to many recipients at low cost via ZK Compression.
-
-#### `pythFetchPrice(agent, priceFeedID)`
-
-Fetch price data from Pyth's Hermes service.
+Check out the [LangGraph example](examples/agent-kit-langgraph) for a complete implementation of an advanced Solana agent system.
 
 ## Dependencies
 
@@ -257,8 +239,9 @@ Refer to [CONTRIBUTING.md](CONTRIBUTING.md) for detailed guidelines on how to co
 
 ## License
 
-MIT License
+Apache-2 License
 
 ## Security
 
 This toolkit handles private keys and transactions. Always ensure you're using it in a secure environment and never share your private keys.
+

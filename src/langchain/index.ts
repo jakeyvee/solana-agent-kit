@@ -1,9 +1,12 @@
 import { PublicKey } from "@solana/web3.js";
 import Decimal from "decimal.js";
 import { Tool } from "langchain/tools";
-import { PythFetchPriceResponse, SolanaAgentKit } from "../index";
+import {
+  GibworkCreateTaskReponse,
+  PythFetchPriceResponse,
+  SolanaAgentKit,
+} from "../index";
 import { create_image } from "../tools/create_image";
-import { fetchPrice } from "../tools/fetch_price";
 import { BN } from "@coral-xyz/anchor";
 import { FEE_TIERS } from "../tools";
 import { toJSON } from "../utils/toJSON";
@@ -67,7 +70,7 @@ export class SolanaTransferTool extends Tool {
       const tx = await this.solanaKit.transfer(
         recipient,
         parsedInput.amount,
-        mintAddress
+        mintAddress,
       );
 
       return JSON.stringify({
@@ -94,7 +97,7 @@ export class SolanaDeployTokenTool extends Tool {
 
   Inputs (input is a JSON string):
   name: string, eg "My Token" (required)
-  uri: string, eg "https://example.com/token.json" (required) 
+  uri: string, eg "https://example.com/token.json" (required)
   symbol: string, eg "MTK" (required)
   decimals?: number, eg 9 (optional, defaults to 9)
   initialSupply?: number, eg 1000000 (optional)`;
@@ -112,7 +115,7 @@ export class SolanaDeployTokenTool extends Tool {
         parsedInput.uri,
         parsedInput.symbol,
         parsedInput.decimals,
-        parsedInput.initialSupply
+        parsedInput.initialSupply,
       );
 
       return JSON.stringify({
@@ -192,7 +195,7 @@ export class SolanaMintNFTTool extends Tool {
         },
         parsedInput.recipient
           ? new PublicKey(parsedInput.recipient)
-          : this.solanaKit.wallet_address
+          : this.solanaKit.wallet_address,
       );
 
       return JSON.stringify({
@@ -240,7 +243,7 @@ export class SolanaTradeTool extends Tool {
         parsedInput.inputMint
           ? new PublicKey(parsedInput.inputMint)
           : new PublicKey("So11111111111111111111111111111111111111112"),
-        parsedInput.slippageBps
+        parsedInput.slippageBps,
       );
 
       return JSON.stringify({
@@ -320,7 +323,7 @@ export class SolanaRegisterDomainTool extends Tool {
 
       const tx = await this.solanaKit.registerDomain(
         parsedInput.name,
-        parsedInput.spaceKB || 1
+        parsedInput.spaceKB || 1,
       );
 
       return JSON.stringify({
@@ -342,10 +345,12 @@ export class SolanaRegisterDomainTool extends Tool {
 
 export class SolanaResolveDomainTool extends Tool {
   name = "solana_resolve_domain";
-  description = `Resolve a .sol domain to a Solana PublicKey.
+  description = `Resolve ONLY .sol domain names to a Solana PublicKey.
+  This tool is exclusively for .sol domains.
+  DO NOT use this for other domain types like .blink, .bonk, etc.
 
   Inputs:
-  domain: string, eg "pumpfun.sol" or "pumpfun"(required)
+  domain: string, eg "pumpfun.sol" (required)
   `;
 
   constructor(private solanaKit: SolanaAgentKit) {
@@ -460,7 +465,7 @@ export class SolanaPumpfunTokenLaunchTool extends Tool {
     try {
       // Parse and normalize input
       input = input.trim();
-      let parsedInput = JSON.parse(input);
+      const parsedInput = JSON.parse(input);
 
       this.validateInput(parsedInput);
 
@@ -475,7 +480,7 @@ export class SolanaPumpfunTokenLaunchTool extends Tool {
           telegram: parsedInput.telegram,
           website: parsedInput.website,
           initialLiquiditySOL: parsedInput.initialLiquiditySOL,
-        }
+        },
       );
 
       return JSON.stringify({
@@ -542,7 +547,7 @@ export class SolanaLendAssetTool extends Tool {
 
   async _call(input: string): Promise<string> {
     try {
-      let amount = JSON.parse(input).amount || input;
+      const amount = JSON.parse(input).amount || input;
 
       const tx = await this.solanaKit.lendAssets(amount);
 
@@ -619,7 +624,7 @@ export class SolanaStakeTool extends Tool {
 export class SolanaFetchPriceTool extends Tool {
   name = "solana_fetch_price";
   description = `Fetch the price of a given token in USDC.
-  
+
   Inputs:
   - tokenId: string, the mint address of the token, e.g., "JUPyiwrYJFskUPiHa7hkeR8VUtAeFoSYbKedZNsDvCN"`;
 
@@ -629,7 +634,7 @@ export class SolanaFetchPriceTool extends Tool {
 
   async _call(input: string): Promise<string> {
     try {
-      const price = await fetchPrice(this.solanaKit, input.trim());
+      const price = await this.solanaKit.fetchTokenPrice(input.trim());
       return JSON.stringify({
         status: "success",
         tokenId: input.trim(),
@@ -708,7 +713,7 @@ export class SolanaTokenDataByTickerTool extends Tool {
 export class SolanaCompressedAirdropTool extends Tool {
   name = "solana_compressed_airdrop";
   description = `Airdrop SPL tokens with ZK Compression (also called as airdropping tokens)
-  
+
   Inputs (input is a JSON string):
   mintAddress: string, the mint address of the token, e.g., "JUPyiwrYJFskUPiHa7hkeR8VUtAeFoSYbKedZNsDvCN" (required)
   amount: number, the amount of tokens to airdrop per recipient, e.g., 42 (required)
@@ -731,7 +736,7 @@ export class SolanaCompressedAirdropTool extends Tool {
         parsedInput.decimals,
         parsedInput.recipients,
         parsedInput.priorityFeeInLamports || 30_000,
-        parsedInput.shouldLog || false
+        parsedInput.shouldLog || false,
       );
 
       return JSON.stringify({
@@ -778,8 +783,8 @@ export class SolanaCreateSingleSidedWhirlpoolTool extends Tool {
       if (!feeTier || !(feeTier in FEE_TIERS)) {
         throw new Error(
           `Invalid feeTier. Available options: ${Object.keys(FEE_TIERS).join(
-            ", "
-          )}`
+            ", ",
+          )}`,
         );
       }
 
@@ -789,7 +794,7 @@ export class SolanaCreateSingleSidedWhirlpoolTool extends Tool {
         otherTokenMint,
         initialPrice,
         maxPrice,
-        feeTier
+        feeTier,
       );
 
       return JSON.stringify({
@@ -824,13 +829,13 @@ export class SolanaRaydiumCreateAmmV4 extends Tool {
 
   async _call(input: string): Promise<string> {
     try {
-      let inputFormat = JSON.parse(input);
+      const inputFormat = JSON.parse(input);
 
       const tx = await this.solanaKit.raydiumCreateAmmV4(
         new PublicKey(inputFormat.marketId),
         new BN(inputFormat.baseAmount),
         new BN(inputFormat.quoteAmount),
-        new BN(inputFormat.startTime)
+        new BN(inputFormat.startTime),
       );
 
       return JSON.stringify({
@@ -866,7 +871,7 @@ export class SolanaRaydiumCreateClmm extends Tool {
 
   async _call(input: string): Promise<string> {
     try {
-      let inputFormat = JSON.parse(input);
+      const inputFormat = JSON.parse(input);
 
       const tx = await this.solanaKit.raydiumCreateClmm(
         new PublicKey(inputFormat.mint1),
@@ -875,7 +880,7 @@ export class SolanaRaydiumCreateClmm extends Tool {
         new PublicKey(inputFormat.configId),
 
         new Decimal(inputFormat.initialPrice),
-        new BN(inputFormat.startTime)
+        new BN(inputFormat.startTime),
       );
 
       return JSON.stringify({
@@ -895,7 +900,7 @@ export class SolanaRaydiumCreateClmm extends Tool {
 
 export class SolanaRaydiumCreateCpmm extends Tool {
   name = "raydium_create_cpmm";
-  description = `Raydium's newest CPMM, does not require marketID, supports Token 2022 standard 
+  description = `Raydium's newest CPMM, does not require marketID, supports Token 2022 standard
 
   Inputs (input is a json string):
   mint1: string (required)
@@ -912,7 +917,7 @@ export class SolanaRaydiumCreateCpmm extends Tool {
 
   async _call(input: string): Promise<string> {
     try {
-      let inputFormat = JSON.parse(input);
+      const inputFormat = JSON.parse(input);
 
       const tx = await this.solanaKit.raydiumCreateCpmm(
         new PublicKey(inputFormat.mint1),
@@ -923,7 +928,7 @@ export class SolanaRaydiumCreateCpmm extends Tool {
         new BN(inputFormat.mintAAmount),
         new BN(inputFormat.mintBAmount),
 
-        new BN(inputFormat.startTime)
+        new BN(inputFormat.startTime),
       );
 
       return JSON.stringify({
@@ -943,7 +948,7 @@ export class SolanaRaydiumCreateCpmm extends Tool {
 
 export class SolanaOpenbookCreateMarket extends Tool {
   name = "solana_openbook_create_market";
-  description = `Openbook marketId, required for ammv4 
+  description = `Openbook marketId, required for ammv4
 
   Inputs (input is a json string):
   baseMint: string (required)
@@ -958,14 +963,14 @@ export class SolanaOpenbookCreateMarket extends Tool {
 
   async _call(input: string): Promise<string> {
     try {
-      let inputFormat = JSON.parse(input);
+      const inputFormat = JSON.parse(input);
 
       const tx = await this.solanaKit.openbookCreateMarket(
         new PublicKey(inputFormat.baseMint),
         new PublicKey(inputFormat.quoteMint),
 
         inputFormat.lotSize,
-        inputFormat.tickSize
+        inputFormat.tickSize,
       );
 
       return JSON.stringify({
@@ -997,20 +1002,326 @@ export class SolanaPythFetchPrice extends Tool {
   async _call(input: string): Promise<string> {
     try {
       const price = await this.solanaKit.pythFetchPrice(input);
-      let response: PythFetchPriceResponse = {
+      const response: PythFetchPriceResponse = {
         status: "success",
         priceFeedID: input,
         price: price,
       };
       return JSON.stringify(response);
     } catch (error: any) {
-      let response: PythFetchPriceResponse = {
+      const response: PythFetchPriceResponse = {
         status: "error",
         priceFeedID: input,
         message: error.message,
         code: error.code || "UNKNOWN_ERROR",
       };
       return JSON.stringify(response);
+    }
+  }
+}
+
+export class SolanaResolveAllDomainsTool extends Tool {
+  name = "solana_resolve_all_domains";
+  description = `Resolve domain names to a public key for ALL domain types EXCEPT .sol domains.
+  Use this for domains like .blink, .bonk, etc.
+  DO NOT use this for .sol domains (use solana_resolve_domain instead).
+
+  Input:
+  domain: string, eg "mydomain.blink" or "mydomain.bonk" (required)`;
+
+  constructor(private solanaKit: SolanaAgentKit) {
+    super();
+  }
+
+  async _call(input: string): Promise<string> {
+    try {
+      const owner = await this.solanaKit.resolveAllDomains(input);
+
+      if (!owner) {
+        return JSON.stringify({
+          status: "error",
+          message: "Domain not found",
+          code: "DOMAIN_NOT_FOUND",
+        });
+      }
+
+      return JSON.stringify({
+        status: "success",
+        message: "Domain resolved successfully",
+        owner: owner?.toString(),
+      });
+    } catch (error: any) {
+      return JSON.stringify({
+        status: "error",
+        message: error.message,
+        code: error.code || "DOMAIN_RESOLUTION_ERROR",
+      });
+    }
+  }
+}
+
+export class SolanaGetOwnedDomains extends Tool {
+  name = "solana_get_owned_domains";
+  description = `Get all domains owned by a specific wallet address.
+
+  Inputs:
+  owner: string, eg "4Be9CvxqHW6BYiRAxW9Q3xu1ycTMWaL5z8NX4HR3ha7t" (required)`;
+
+  constructor(private solanaKit: SolanaAgentKit) {
+    super();
+  }
+
+  async _call(input: string): Promise<string> {
+    try {
+      const ownerPubkey = new PublicKey(input.trim());
+      const domains = await this.solanaKit.getOwnedAllDomains(ownerPubkey);
+
+      return JSON.stringify({
+        status: "success",
+        message: "Owned domains fetched successfully",
+        domains: domains,
+      });
+    } catch (error: any) {
+      return JSON.stringify({
+        status: "error",
+        message: error.message,
+        code: error.code || "FETCH_OWNED_DOMAINS_ERROR",
+      });
+    }
+  }
+}
+
+export class SolanaGetOwnedTldDomains extends Tool {
+  name = "solana_get_owned_tld_domains";
+  description = `Get all domains owned by the agent's wallet for a specific TLD.
+
+  Inputs:
+  tld: string, eg "bonk" (required)`;
+
+  constructor(private solanaKit: SolanaAgentKit) {
+    super();
+  }
+
+  async _call(input: string): Promise<string> {
+    try {
+      const domains = await this.solanaKit.getOwnedDomainsForTLD(input);
+
+      return JSON.stringify({
+        status: "success",
+        message: "TLD domains fetched successfully",
+        domains: domains,
+      });
+    } catch (error: any) {
+      return JSON.stringify({
+        status: "error",
+        message: error.message,
+        code: error.code || "FETCH_TLD_DOMAINS_ERROR",
+      });
+    }
+  }
+}
+
+export class SolanaGetAllTlds extends Tool {
+  name = "solana_get_all_tlds";
+  description = `Get all active top-level domains (TLDs) in the AllDomains Name Service`;
+
+  constructor(private solanaKit: SolanaAgentKit) {
+    super();
+  }
+
+  async _call(): Promise<string> {
+    try {
+      const tlds = await this.solanaKit.getAllDomainsTLDs();
+
+      return JSON.stringify({
+        status: "success",
+        message: "TLDs fetched successfully",
+        tlds: tlds,
+      });
+    } catch (error: any) {
+      return JSON.stringify({
+        status: "error",
+        message: error.message,
+        code: error.code || "FETCH_TLDS_ERROR",
+      });
+    }
+  }
+}
+
+export class SolanaGetMainDomain extends Tool {
+  name = "solana_get_main_domain";
+  description = `Get the main/favorite domain for a given wallet address.
+
+  Inputs:
+  owner: string, eg "4Be9CvxqHW6BYiRAxW9Q3xu1ycTMWaL5z8NX4HR3ha7t" (required)`;
+
+  constructor(private solanaKit: SolanaAgentKit) {
+    super();
+  }
+
+  async _call(input: string): Promise<string> {
+    try {
+      const ownerPubkey = new PublicKey(input.trim());
+      const mainDomain =
+        await this.solanaKit.getMainAllDomainsDomain(ownerPubkey);
+
+      return JSON.stringify({
+        status: "success",
+        message: "Main domain fetched successfully",
+        domain: mainDomain,
+      });
+    } catch (error: any) {
+      return JSON.stringify({
+        status: "error",
+        message: error.message,
+        code: error.code || "FETCH_MAIN_DOMAIN_ERROR",
+      });
+    }
+  }
+}
+
+export class SolanaCreateGibworkTask extends Tool {
+  name = "create_gibwork_task";
+  description = `Create a task on Gibwork.
+
+  Inputs (input is a JSON string):
+  title: string, title of the task (required)
+  content: string, description of the task (required)
+  requirements: string, requirements to complete the task (required)
+  tags: string[], list of tags associated with the task (required)
+  payer: string, payer address (optional, defaults to agent wallet)
+  tokenMintAddress: string, the mint address of the token, e.g., "JUPyiwrYJFskUPiHa7hkeR8VUtAeFoSYbKedZNsDvCN" (required)
+  amount: number, payment amount (required)
+  `;
+
+  constructor(private solanaSdk: SolanaAgentKit) {
+    super();
+  }
+
+  protected async _call(input: string): Promise<string> {
+    try {
+      const parsedInput = JSON.parse(input);
+
+      const taskData = await this.solanaSdk.createGibworkTask(
+        parsedInput.title,
+        parsedInput.content,
+        parsedInput.requirements,
+        parsedInput.tags,
+        parsedInput.tokenMintAddress,
+        parsedInput.amount,
+        parsedInput.payer,
+      );
+
+      const response: GibworkCreateTaskReponse = {
+        status: "success",
+        taskId: taskData.taskId,
+        signature: taskData.signature,
+      };
+
+      return JSON.stringify(response);
+    } catch (err: any) {
+      return JSON.stringify({
+        status: "error",
+        message: err.message,
+        code: err.code || "CREATE_TASK_ERROR",
+      });
+    }
+  }
+}
+
+export class SolanaRockPaperScissorsTool extends Tool {
+  name = "rock_paper_scissors";
+  description = `Play rock paper scissors to win SEND coins.
+
+  Inputs (input is a JSON string):
+  choice: string, either "rock", "paper", or "scissors" (required)
+  amount: number, amount of SOL to play with - must be 0.1, 0.01, or 0.005 SOL (required)`;
+
+  constructor(private solanaKit: SolanaAgentKit) {
+    super();
+  }
+
+  private validateInput(input: any): void {
+    if (input.choice !== undefined) {
+      throw new Error("choice is required.");
+    }
+    if (
+      input.amount !== undefined &&
+      (typeof input.spaceKB !== "number" || input.spaceKB <= 0)
+    ) {
+      throw new Error("amount must be a positive number when provided");
+    }
+  }
+
+  protected async _call(input: string): Promise<string> {
+    try {
+      const parsedInput = toJSON(input);
+      this.validateInput(parsedInput);
+      const result = await this.solanaKit.rockPaperScissors(
+        Number(parsedInput['"amount"']),
+        parsedInput['"choice"'].replace(/^"|"$/g, "") as
+          | "rock"
+          | "paper"
+          | "scissors",
+      );
+
+      return JSON.stringify({
+        status: "success",
+        message: result,
+      });
+    } catch (error: any) {
+      return JSON.stringify({
+        status: "error",
+        message: error.message,
+        code: error.code || "UNKNOWN_ERROR",
+      });
+    }
+  }
+}
+
+export class SolanaTipLinkTool extends Tool {
+  name = "solana_tiplink";
+  description = `Create a TipLink for transferring SOL or SPL tokens.
+  Input is a JSON string with:
+  - amount: number (required) - Amount to transfer
+  - splmintAddress: string (optional) - SPL token mint address`;
+
+  constructor(private solanaKit: SolanaAgentKit) {
+    super();
+  }
+
+  protected async _call(input: string): Promise<string> {
+    try {
+      const parsedInput = JSON.parse(input);
+
+      if (!parsedInput.amount) {
+        throw new Error("Amount is required");
+      }
+
+      const amount = parseFloat(parsedInput.amount);
+      const splmintAddress = parsedInput.splmintAddress
+        ? new PublicKey(parsedInput.splmintAddress)
+        : undefined;
+
+      const { url, signature } = await this.solanaKit.createTiplink(
+        amount,
+        splmintAddress,
+      );
+
+      return JSON.stringify({
+        status: "success",
+        url,
+        signature,
+        amount,
+        tokenType: splmintAddress ? "SPL" : "SOL",
+        message: `TipLink created successfully`,
+      });
+    } catch (error: any) {
+      return JSON.stringify({
+        status: "error",
+        message: error.message,
+        code: error.code || "UNKNOWN_ERROR",
+      });
     }
   }
 }
@@ -1027,15 +1338,12 @@ export class SolanaVoltrDepositStrategy extends Tool {
   protocolProgram: string (required)
   remainingAccounts: array of objects (required)
   `;
-
   constructor(private solanaKit: SolanaAgentKit) {
     super();
   }
-
   async _call(input: string): Promise<string> {
     try {
       let inputFormat = JSON.parse(input);
-
       const tx = await this.solanaKit.voltrDepositStrategy(
         new BN(inputFormat.depositAmount),
         new PublicKey(inputFormat.vault),
@@ -1044,7 +1352,6 @@ export class SolanaVoltrDepositStrategy extends Tool {
         new PublicKey(inputFormat.protocolProgram),
         inputFormat.remainingAccounts
       );
-
       return JSON.stringify({
         status: "success",
         message: "Deposited into Voltrstrategy successfully",
@@ -1073,15 +1380,12 @@ export class SolanaVoltrWithdrawStrategy extends Tool {
   protocolProgram: string (required)
   remainingAccounts: array of objects (required)
   `;
-
   constructor(private solanaKit: SolanaAgentKit) {
     super();
   }
-
   async _call(input: string): Promise<string> {
     try {
       let inputFormat = JSON.parse(input);
-
       const tx = await this.solanaKit.voltrWithdrawStrategy(
         new BN(inputFormat.withdrawAmount),
         new PublicKey(inputFormat.vault),
@@ -1091,7 +1395,6 @@ export class SolanaVoltrWithdrawStrategy extends Tool {
         new PublicKey(inputFormat.protocolProgram),
         inputFormat.remainingAccounts
       );
-
       return JSON.stringify({
         status: "success",
         message: "Withdrew from Voltr strategy successfully",
@@ -1124,7 +1427,6 @@ export function createSolanaTools(solanaKit: SolanaAgentKit) {
     new SolanaTPSCalculatorTool(solanaKit),
     new SolanaStakeTool(solanaKit),
     new SolanaFetchPriceTool(solanaKit),
-    new SolanaResolveDomainTool(solanaKit),
     new SolanaGetDomainTool(solanaKit),
     new SolanaTokenDataTool(solanaKit),
     new SolanaTokenDataByTickerTool(solanaKit),
@@ -1135,6 +1437,15 @@ export function createSolanaTools(solanaKit: SolanaAgentKit) {
     new SolanaOpenbookCreateMarket(solanaKit),
     new SolanaCreateSingleSidedWhirlpoolTool(solanaKit),
     new SolanaPythFetchPrice(solanaKit),
+    new SolanaResolveDomainTool(solanaKit),
+    new SolanaGetOwnedDomains(solanaKit),
+    new SolanaGetOwnedTldDomains(solanaKit),
+    new SolanaGetAllTlds(solanaKit),
+    new SolanaGetMainDomain(solanaKit),
+    new SolanaResolveAllDomainsTool(solanaKit),
+    new SolanaCreateGibworkTask(solanaKit),
+    new SolanaRockPaperScissorsTool(solanaKit),
+    new SolanaTipLinkTool(solanaKit),
     new SolanaVoltrDepositStrategy(solanaKit),
     new SolanaVoltrWithdrawStrategy(solanaKit),
   ];

@@ -1350,7 +1350,17 @@ export class SolanaVoltrDepositStrategy extends Tool {
         new PublicKey(inputFormat.vaultAssetMint),
         new PublicKey(inputFormat.liquidityReserve),
         new PublicKey(inputFormat.protocolProgram),
-        inputFormat.remainingAccounts
+        inputFormat.remainingAccounts.map(
+          (account: {
+            pubkey: string;
+            isSigner: boolean;
+            isWritable: boolean;
+          }) => ({
+            pubkey: new PublicKey(account.pubkey),
+            isSigner: account.isSigner,
+            isWritable: account.isWritable,
+          }),
+        ),
       );
       return JSON.stringify({
         status: "success",
@@ -1393,7 +1403,17 @@ export class SolanaVoltrWithdrawStrategy extends Tool {
         new PublicKey(inputFormat.liquidityReserve),
         new PublicKey(inputFormat.liquidityReserveAuth),
         new PublicKey(inputFormat.protocolProgram),
-        inputFormat.remainingAccounts
+        inputFormat.remainingAccounts.map(
+          (account: {
+            pubkey: string;
+            isSigner: boolean;
+            isWritable: boolean;
+          }) => ({
+            pubkey: new PublicKey(account.pubkey),
+            isSigner: account.isSigner,
+            isWritable: account.isWritable,
+          }),
+        ),
       );
       return JSON.stringify({
         status: "success",
